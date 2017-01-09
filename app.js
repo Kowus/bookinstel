@@ -8,6 +8,13 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 
+var date = new Date();
+
+var api_key = 'key-a820b4d621f4ba6146a75b96eb76d07c';
+var domain = 'app8b6602990d76405c8a93049d76dd28ce.mailgun.org';
+var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
+
+
 var app = express();
 
 // view engine setup
@@ -24,6 +31,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+
+app.post('/contact', function (req, res, next) {
+	var data = {
+		from: req.body.email,
+		to: 'sodramatic@live.com',
+		subject: req.body.subject + ' time: ' + date.getUTCDate(),
+		text: req.body.message
+	};
+	
+	mailgun.messages().send(data, function (error, body) {
+		if(error){ console.log(error.message);
+		res.send(error.message);
+		}
+		console.log(body);
+		res.send('Sent!')
+	});
+})
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
